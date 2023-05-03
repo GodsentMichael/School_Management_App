@@ -1,0 +1,32 @@
+{
+  "name": "school_management_app",
+  "version": "1.0.0",
+  "description": "School Management System",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GodsentMichael/School_Management_App.git"
+  },
+  "keywords": [
+    "lms",
+    "school management system",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GodsentMichael/School_Management_App/issues"
+  },
+  "homepage": "https://github.com/GodsentMichael/School_Management_App#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.1.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.22"
+  }
+}
