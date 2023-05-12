@@ -23,7 +23,7 @@ exports.adminRegister = AsyncHandler(async (req, res) => {
 		role,
 	});
 	res.status(201).json({
-        status: 'Success',
+		status: 'Success',
 		message: 'Admin created successfully',
 		data: adminUser,
 	});
@@ -39,7 +39,7 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 		const adminUser = await Admin.findOne({ email: email });
 		if (!adminUser) {
 			res.json({
-                status: 'Failed',
+				status: 'Failed',
 				message: 'Invalid login details',
 			});
 		}
@@ -53,19 +53,17 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 				console.log('token is verified=>', verify);
 			}
 			return res.status(201).json({
-             
 				message: 'Admin logged-in successfully',
 				token: generateToken(adminUser?._id),
 			});
 		} else {
 			return res.json({
-               
 				message: 'Invalid login details',
 			});
 		}
 	} catch (error) {
 		return res.status(500).json({
-            status: 'Failed',
+			status: 'Failed',
 			message: 'Internal server error',
 		});
 	}
@@ -108,14 +106,38 @@ exports.getAdminProfile = AsyncHandler(async (req, res) => {
 //route  GET api/v1/admins/
 //access Private
 exports.getAllAdminProfile = AsyncHandler(async (req, res) => {
-   try {
-    const admins = await Admin.find()
-    if(!admins){
-        throw new Error('Admins Not Found');
-    }else {
-        res.status(200).json({mesage: 'Fetched All Admin Profiles', admins});
-    }
-   } catch (error) {
-    res.status(500).json({mesage:"Internal Server Error"});
-   } 
+	try {
+		const admins = await Admin.find();
+		if (!admins) {
+			throw new Error('Admins Not Found');
+		} else {
+			res.status(200).json({ mesage: 'Fetched All Admin Profiles', admins });
+		}
+	} catch (error) {
+		res.status(500).json({ mesage: 'Internal Server Error' });
+	}
+});
+
+//desc   update admins.
+//route  PUT api/v1/admins/:id
+//access Private
+
+exports.updateAdmin = AsyncHandler(async (req, res) => {
+	const { email, password, name } = req.body;
+	// Check if admin exists
+	const adminUser = await Admin.findOne({ email: email });
+	if (adminUser) {
+		throw new Error('Admin with this email already exists');
+	} else {
+		const admin = await Admin.findByIdAndUpdate(
+			req.userAuth._id,
+			{
+				email: email,
+				password: password,
+				name: name,
+			},
+			{ new: true, runValidators: true }
+		);
+        res.status(200).json({mesage: 'Admin Successfully Updated', admin});
+	}
 });

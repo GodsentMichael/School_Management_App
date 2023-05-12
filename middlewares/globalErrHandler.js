@@ -3,7 +3,7 @@ const globalErrHandler = (err, req, res, next) => {
 	//status
 	//message
 	//stack
-	const status = err?.status ? err?.status : 'failed';
+	const status = err?.status ? err?.status : 'Failed';
 	const message = err?.message || 'Internal server Error';
 	const stack = err?.stack || 'No stack trace';
 	const statusCode = err?.statusCode ? err?.statusCode : 500;
