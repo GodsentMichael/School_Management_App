@@ -18,6 +18,36 @@ const adminSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		academicTerm: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'AcademicTerm',
+			},
+		],
+		academicYear: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'AcademicYear',
+			},
+		],
+		students: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'Student',
+			},
+		],
+		teachers: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'Teacher',
+			},
+		],
+		classLevels: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: 'ClassLevel',
+			},
+		],
 	},
 	{
 		timestamps: true,
@@ -47,7 +77,6 @@ adminSchema.methods.isPasswordMatch = async function (enteredPassword) {
 	return await bcrypt.compare(enteredPassword, this.password);
 };
 
-
 //==== Admin Model =====\\
-const Admin = mongoose.model("Admin", adminSchema)
-module.exports = Admin
+const Admin = mongoose.model('Admin', adminSchema);
+module.exports = Admin;
