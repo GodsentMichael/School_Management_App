@@ -3,6 +3,7 @@ const AsyncHandler = require('express-async-handler');
 const { generateToken, verifyToken } = require('../../utils/authToken');
 const bcrypt = require('bcryptjs');
 const { verify } = require('jsonwebtoken');
+const { hashPassword, isPWMatched } = require('../../utils/helpers');
 
 //desc   register admins
 //route  POST api/v1/admins/register
@@ -15,18 +16,13 @@ exports.adminRegister = AsyncHandler(async (req, res) => {
 	if (adminExist) {
 		throw new Error('Admin already exists');
 	}
-	// TO HASH PASSWORD.
-	//Generate a salt
-	const salt = await bcrypt.genSalt(10);
-	//Generate a password hash (salt + hash)
-	const passwordHashed = await bcrypt.hash(password, salt);
 	
 	//Create the admin user
 	const adminUser = await Admin.create({
 		name,
 		email,
         //Re-assign hashed version over original, plain text password
-		password: passwordHashed,
+		password:   await hashPassword(password),
 		role,
 	});
 	res.status(201).json({
@@ -52,9 +48,8 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 		}
         console.log("Admin User=>",adminUser);
 		//Check if password matches
-		const isMatch = await bcrypt.compare(password, adminUser.password);
+		const isMatch = await isPWMatched(password, adminUser.password);
 		if (!isMatch){
-            console.log("isMatch =>",isMatch);
             return res.json({
 				message: 'Invalid login details, pls check!',
 			});
@@ -139,16 +134,36 @@ exports.updateAdmin = AsyncHandler(async (req, res) => {
 	const adminUser = await Admin.findOne({ email: email });
 	if (adminUser) {
 		throw new Error('Admin with this email already exists');
-	} else {
-		const admin = await Admin.findByIdAndUpdate(
+	} 
+// TO HASH PASSWORD.
+	//Generate a salt
+	const salt = await bcrypt.genSalt(10);
+	//Generate a password hash (salt + hash)
+	const passwordHashed = await bcrypt.hash(password, salt);
+    //Check if user is updating password.
+    if(password) {
+        const admin = await Admin.findByIdAndUpdate(
 			req.userAuth._id,
 			{
 				email: email,
-				password: password,
+				password: await hashPassword(password),
 				name: name,
 			},
 			{ new: true, runValidators: true }
 		);
 		res.status(200).json({ mesage: 'Admin Successfully Updated', admin });
-	}
+    }else{
+        const admin = await Admin.findByIdAndUpdate(
+			req.userAuth._id,
+			{
+				email: email,
+				name: name,
+			},
+			{ new: true, runValidators: true }
+		);
+		res.status(200).json({ mesage: 'Admin Successfully Updated', admin });
+    }
+
+		
+
 });
