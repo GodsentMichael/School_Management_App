@@ -1,25 +1,32 @@
 const Admin = require('../../models/Staff/Admin');
 const AsyncHandler = require('express-async-handler');
 const { generateToken, verifyToken } = require('../../utils/authToken');
+const bcrypt = require('bcryptjs');
 const { verify } = require('jsonwebtoken');
 
 //desc   register admins
 //route  POST api/v1/admins/register
 //access Private
 exports.adminRegister = AsyncHandler(async (req, res) => {
-	const { name, email, password, role } = req.body;
+	let { name, email, password, role } = req.body;
 
 	//Check if email exists
 	const adminExist = await Admin.findOne({ email: email });
 	if (adminExist) {
 		throw new Error('Admin already exists');
 	}
-
+	// TO HASH PASSWORD.
+	//Generate a salt
+	const salt = await bcrypt.genSalt(10);
+	//Generate a password hash (salt + hash)
+	const passwordHashed = await bcrypt.hash(password, salt);
+	
 	//Create the admin user
 	const adminUser = await Admin.create({
 		name,
 		email,
-		password,
+        //Re-assign hashed version over original, plain text password
+		password: passwordHashed,
 		role,
 	});
 	res.status(201).json({
@@ -43,11 +50,17 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 				message: 'Invalid login details',
 			});
 		}
+        console.log("Admin User=>",adminUser);
 		//Check if password matches
-		const isMatch = await adminUser.isPasswordMatch(password);
-		if (adminUser && isMatch) {
+		const isMatch = await bcrypt.compare(password, adminUser.password);
+		if (!isMatch){
+            console.log("isMatch =>",isMatch);
+            return res.json({
+				message: 'Invalid login details, pls check!',
+			});
+           
+        } else {
 			const token = generateToken(adminUser?._id);
-			console.log(token);
 			if (token) {
 				const verify = verifyToken(token);
 				console.log('token is verified=>', verify);
@@ -56,11 +69,7 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 				message: 'Admin logged-in successfully',
 				token: generateToken(adminUser?._id),
 			});
-		} else {
-			return res.json({
-				message: 'Invalid login details',
-			});
-		}
+		} 
 	} catch (error) {
 		return res.status(500).json({
 			status: 'Failed',
@@ -68,6 +77,8 @@ exports.adminLogin = AsyncHandler(async (req, res) => {
 		});
 	}
 });
+
+  
 
 //desc   get a single admin.
 //route  GET api/v1/admins/:id
@@ -138,6 +149,6 @@ exports.updateAdmin = AsyncHandler(async (req, res) => {
 			},
 			{ new: true, runValidators: true }
 		);
-        res.status(200).json({mesage: 'Admin Successfully Updated', admin});
+		res.status(200).json({ mesage: 'Admin Successfully Updated', admin });
 	}
 });
